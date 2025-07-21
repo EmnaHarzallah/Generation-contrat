@@ -78,7 +78,14 @@ class ContractController extends Controller
 }
 
 
-
+public function showSignatureForm($id)
+{
+    $contract = Contract::find($id);
+    if (!$contract) {
+        abort(404, 'Contract not found');
+    }
+    return view('signature', compact('contract'));
+}
 
 
     public function sign(Request $request, $id)
@@ -86,8 +93,14 @@ class ContractController extends Controller
     $request->validate([
         'signature' => 'required|string',
     ]);
+    $plan = SubscriptionPlan::findOrFail($id);
 
-    $contract = Contract::findOrFail($id);
+     $contract = new Contract();
+     $contract->user_id = Auth::user()->id;
+     $contract->subscription_plan_id = $id;
+     $contract->signature_path = null;
+     $contract->signed_at = null;
+     $contract->save();
 
     // Extraire les données de l'image base64
     $base64Image = $request->input('signature');
@@ -103,8 +116,10 @@ class ContractController extends Controller
     $contract->signed_at = now();
     $contract->save();
 
-    return view('signature', compact('contract'));
+    return redirect()->route('show.signature', $contract->id);
 }
+
+
 /*public function createAndSendToYousign($planId)
 {
     $user = Auth::user();

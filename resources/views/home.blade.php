@@ -12,7 +12,7 @@
                                 <h5 class="card-title">{{ $plan->name }}</h5>
                                 <p class="card-text">{{ $plan->description }}</p>
                                 <p class="card-text"><strong>Prix : </strong>{{ $plan->price }} € / {{ $plan->duration }} jours</p>
-                                <form action="{{ route('contract.show', $plan->id) }}" method="POST">
+                                <form action="{{ route('contract.show', $plan->id) }}" method="GET">
                                     @csrf
                                     <button type="submit" class="btn btn-primary">Choisir</button>
                                 </form>

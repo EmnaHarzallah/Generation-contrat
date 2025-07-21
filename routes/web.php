@@ -39,25 +39,14 @@ Route::get('/dashboard', function () {
 
 
 
-// Show the contract and signature area (GET)
+// Show the contract and signature form
 Route::get('showcontract/{id}', [ContractController::class, 'showContract'])->name('contract.show');
 
+// Show the signature form (if needed)
+Route::get('signcontract/{id}', [ContractController::class, 'showSignatureForm'])->name('show.signature');
 
-
-// Handle the signature submission (POST)
-Route::get('showcontract/{id}/sign', function($id){ 
-    $contract = Contract::find($id);
-    if (!$contract) {
-        abort(404, 'Contract not found');
-    }
-    return view('signature', compact('contract'));
-})->name('show.signature');
-
-
-Route::post('showcontract/{id}/sign', [ContractController::class, 'sign'])->name('contract.sign');
-
-
-
+// Handle the signature submission
+Route::post('signcontract/{id}', [ContractController::class, 'sign'])->name('signedcontract');
 //Route::get('/stripe/{plan}', [StripeController::class, 'showForm'])->name('stripe.form');
 //Route::post('/stripe/{plan}', [StripeController::class, 'processPayment'])->name('stripe.process');
 

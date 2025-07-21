@@ -4,7 +4,7 @@
 <div class="container">
     <h2>Signature du contrat</h2>
 
-    <form action="{{ route('contract.sign', $contract->id) }}" method="POST">
+    <form action="{{ route('signedcontract', $contract->id) }}" method="POST">
         @csrf
 
         <!-- Zone de signature -->
