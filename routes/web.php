@@ -53,4 +53,4 @@ Route::get('/process-payment/{plan}/{contract}', [PaymentController::class, 'sho
 Route::post('/process-payment/{plan}/{contract}', [PaymentController::class, 'processPayment'])->name('process-payment');
 Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('stripe.webhook');
 
-Route::get('/download-contract/{contract}', [ContractController::class, 'downloadContract'])->name('download.contract');
+Route::get('/download-contract/{plan}', [ContractController::class, 'generateandDownloadContract'])->name('download.contract');

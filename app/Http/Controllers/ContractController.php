@@ -55,6 +55,42 @@ class ContractController extends Controller
         return redirect()->route('contract.index');
     }
 
+    public function generateandDownloadContract($planId)
+{
+    $user = auth()->user();
+    $plan = SubscriptionPlan::findOrFail($planId);
+
+    // Charger le template Word
+    $templatePath = storage_path('app/contract_template.docx');
+    $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
+    $signature = Storage::disk('public')->get('signatures/signature_' . $user->id . '_' . time() . '.png');
+
+    // Remplacer les variables du template
+    $templateProcessor->setValue('name', $user->name);
+    $templateProcessor->setValue('email', $user->email);
+    $templateProcessor->setValue('plan_name', $plan->name);
+    $templateProcessor->setValue('description', $plan->description);
+    $templateProcessor->setValue('price', $plan->price);
+    $templateProcessor->setValue('duration', $plan->duration);
+    $end_date = \Carbon\Carbon::now()->addDays($plan->duration);
+    $templateProcessor->setValue('end_date', $end_date->format('d/m/Y'));
+    $templateProcessor->setValue('start_date', \Carbon\Carbon::now()->format('d/m/Y'));
+    $templateProcessor->setValue('contract_date', \Carbon\Carbon::now()->format('d/m/Y'));
+    $templateProcessor->setValue('Signature', $signature);
+
+
+    // Définir le nom du fichier généré
+    $fileName = 'contrat_' . $user->id . '_' . time() . '.docx';
+    $savePath = storage_path('app/public/contracts/' . $fileName);
+
+    // Sauvegarder le contrat généré
+    $templateProcessor->saveAs($savePath);
+
+    
+    return response()->download($savePath, $fileName);
+}
+
+
 
     public function showContract($planId)
 {
@@ -118,7 +154,10 @@ public function sign(Request $request, $contract)
     $contract->signed_at = now();
     $contract->save();
 
-    return redirect()->route('process-payment', $contract->subscription_plan_id , $contract);
+    return redirect()->route('show-payment-form', [
+        'plan' => $contract->subscription_plan_id,
+        'contract' => $contract->id
+    ]);
 }
 
 public function downloadContract($contractId)

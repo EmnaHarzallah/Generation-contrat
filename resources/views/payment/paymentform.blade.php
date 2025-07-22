@@ -6,7 +6,7 @@
     <div class="card shadow p-4" style="max-width: 400px;">
         <h3 class="mb-3 text-center">Paiement pour : <span class="text-primary">{{ $plan->name }}</span></h3>
         <p class="fs-5 text-center mb-4">Montant : <strong>{{ $plan->price }} €</strong></p>
-        <form id="payment-form" action="{{ route('process-payment', $plan->id , $contract->id) }}" method="POST">
+        <form id="payment-form" action="{{ route('process-payment', ['plan' => $plan->id, 'contract' => $contract->id]) }}" method="POST">
             @csrf
             <div id="card-element" class="mb-3"></div>
             <button id="submit-button" class="btn btn-primary w-100">Payer</button>
@@ -32,7 +32,7 @@
         e.preventDefault();
 
         // Crée le PaymentIntent côté backend
-        const response = await fetch("{{ route('process-payment', $plan->id , $contract->id) }}", {
+        const response = await fetch("{{ route('process-payment', ['plan' => $plan->id, 'contract' => $contract->id]) }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -54,13 +54,13 @@
                 paymentMessage.textContent = 'Erreur de paiement : ' + result.error.message;
                 paymentMessage.classList.add('text-danger');
             } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-                paymentMessage.textContent = 'Paiement réussi ! Merci 🎉';
+                paymentMessage.textContent = 'Paiement réussi ! Vous pouvez télécharger le contrat.';
                 paymentMessage.classList.remove('text-danger');
                 paymentMessage.classList.add('text-success');
-                // Affiche le bouton de téléchargement
-        document.getElementById('download-contract').style.display = 'block';
-        // Remplace 123 par l'ID réel du contrat (voir plus bas)
-        document.getElementById('download-link').href = '/download-contract/{{ $contract->id }}';
+                
+                document.getElementById('download-contract').style.display = 'block';
+        
+                document.getElementById('download-link').href = '{{ route('download.contract', $plan->id) }}';
             }
         } else {
             paymentMessage.textContent = 'Erreur lors de la création du paiement.';
