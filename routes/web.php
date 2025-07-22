@@ -49,8 +49,8 @@ Route::get('signcontract/{id}', [ContractController::class, 'showSignatureForm']
 // Handle the signature submission (POST)
 Route::post('signcontract/{contract}', [ContractController::class, 'sign'])->name('contract.sign');
 
-Route::get('/process-payment/{plan}', [PaymentController::class, 'showPaymentForm'])->name('show-payment-form');
-Route::post('/process-payment/{plan}', [PaymentController::class, 'processPayment'])->name('process-payment');
+Route::get('/process-payment/{plan}/{contract}', [PaymentController::class, 'showPaymentForm'])->name('show-payment-form');
+Route::post('/process-payment/{plan}/{contract}', [PaymentController::class, 'processPayment'])->name('process-payment');
 Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('stripe.webhook');
 
 Route::get('/download-contract/{contract}', [ContractController::class, 'downloadContract'])->name('download.contract');

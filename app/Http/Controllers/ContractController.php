@@ -118,7 +118,7 @@ public function sign(Request $request, $contract)
     $contract->signed_at = now();
     $contract->save();
 
-    return redirect()->route('process-payment', $contract->subscription_plan_id);
+    return redirect()->route('process-payment', $contract->subscription_plan_id , $contract);
 }
 
 public function downloadContract($contractId)

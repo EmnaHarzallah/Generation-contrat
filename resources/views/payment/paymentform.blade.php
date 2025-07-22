@@ -6,7 +6,7 @@
     <div class="card shadow p-4" style="max-width: 400px;">
         <h3 class="mb-3 text-center">Paiement pour : <span class="text-primary">{{ $plan->name }}</span></h3>
         <p class="fs-5 text-center mb-4">Montant : <strong>{{ $plan->price }} €</strong></p>
-        <form id="payment-form" action="{{ route('process-payment', $plan->id) }}" method="POST">
+        <form id="payment-form" action="{{ route('process-payment', $plan->id , $contract->id) }}" method="POST">
             @csrf
             <div id="card-element" class="mb-3"></div>
             <button id="submit-button" class="btn btn-primary w-100">Payer</button>
@@ -32,7 +32,7 @@
         e.preventDefault();
 
         // Crée le PaymentIntent côté backend
-        const response = await fetch("{{ route('process-payment', $plan->id) }}", {
+        const response = await fetch("{{ route('process-payment', $plan->id , $contract->id) }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

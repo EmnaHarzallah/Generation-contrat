@@ -6,18 +6,20 @@ use Illuminate\Http\Request;
 use App\Models\SubscriptionPlan;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
-
+use App\Models\Contract;
 class PaymentController extends Controller
 {
-    public function showPaymentForm($planId)
+    public function showPaymentForm($planId, $contractId)
     {
         $plan = SubscriptionPlan::findOrFail($planId);
-        return view('payment.paymentform', compact('plan'));
+        $contract = Contract::findOrFail($contractId);
+        return view('payment.paymentform', compact('plan', 'contract'));
     }
 
-    public function processPayment(Request $request, $planId)
+    public function processPayment(Request $request, $planId, $contractId)
     {
         $plan = SubscriptionPlan::findOrFail($planId);
+        $contract = Contract::findOrFail($contractId);
 
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
