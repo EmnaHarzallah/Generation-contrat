@@ -12,6 +12,9 @@
             <button id="submit-button" class="btn btn-primary w-100">Payer</button>
         </form>
         <div id="payment-message" class="mt-3 text-center"></div>
+            <div id="download-contract" class="mt-3 text-center" style="display:none;">
+            <a id="download-link" href="{{ route('download.contract', $contract->id) }}" class="btn btn-success" target="_blank">Télécharger le contrat</a>
+        </div>
     </div>
 </div>
 
@@ -54,8 +57,10 @@
                 paymentMessage.textContent = 'Paiement réussi ! Merci 🎉';
                 paymentMessage.classList.remove('text-danger');
                 paymentMessage.classList.add('text-success');
-                // Redirection possible :
-                // window.location.href = '/payment-success';
+                // Affiche le bouton de téléchargement
+        document.getElementById('download-contract').style.display = 'block';
+        // Remplace 123 par l'ID réel du contrat (voir plus bas)
+        document.getElementById('download-link').href = '/download-contract/{{ $contract->id }}';
             }
         } else {
             paymentMessage.textContent = 'Erreur lors de la création du paiement.';

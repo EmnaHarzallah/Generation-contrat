@@ -52,3 +52,5 @@ Route::post('signcontract/{contract}', [ContractController::class, 'sign'])->nam
 Route::get('/process-payment/{plan}', [PaymentController::class, 'showPaymentForm'])->name('show-payment-form');
 Route::post('/process-payment/{plan}', [PaymentController::class, 'processPayment'])->name('process-payment');
 Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('stripe.webhook');
+
+Route::get('/download-contract/{contract}', [ContractController::class, 'downloadContract'])->name('download.contract');

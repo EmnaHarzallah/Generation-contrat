@@ -121,6 +121,17 @@ public function sign(Request $request, $contract)
     return redirect()->route('process-payment', $contract->subscription_plan_id);
 }
 
+public function downloadContract($contractId)
+{
+    $contract = Contract::findOrFail($contractId);
+    $filePath = storage_path('C:\Users\ADMIN\NewCA\storage\contract_template.docx'); 
+
+    if (!file_exists($filePath)) {
+        abort(404, 'Contrat non trouvé.');
+    }
+
+    return response()->download($filePath, 'contrat_' . $contract->id . '.pdf');
+}
 
 
 }
