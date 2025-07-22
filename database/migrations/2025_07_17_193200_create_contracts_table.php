@@ -19,8 +19,14 @@ return new class extends Migration
         $table->date('start_date');
         $table->date('end_date')->nullable();
         $table->timestamps();
-
         $table->foreign('user_id')->references('id')->on('users');
+        $table->unsignedBigInteger('subscription_plan_id')->nullable();
+        $table->string('signature_path')->nullable();
+        $table->date('signed_at')->nullable();
+       
+        
+        
+
     });
 }
 

@@ -60,6 +60,18 @@ class ContractController extends Controller
 {
     $user = Auth::user();
     $plan = SubscriptionPlan::findOrFail($planId);
+    $contract = new Contract();
+    $contract->user_id = Auth::user()->id;
+    $contract->details = $plan->description;
+    $contract->start_date = now();
+    $contract->end_date = now()->addDays($plan->duration);
+    $contract->subscription_plan_id = $plan->id;
+    $contract->title = $plan->name; 
+    $contract->signature_path = null;
+    $contract->signed_at = null;
+    $contract->updated_at = now();
+    $contract->created_at = now();
+    $contract->save();
 
   
     $contractHtml = "
@@ -74,34 +86,28 @@ class ContractController extends Controller
         <p>Veuillez signer ci-dessous :</p>
     ";
 
-    return view('subscribe.showcontract', compact('contractHtml', 'plan'));
+    return view('subscribe.showcontract', compact('contractHtml', 'plan' , 'contract'));
 }
 
 
-public function showSignatureForm($id)
+public function showSignatureForm($contract , $plan)
 {
-    $contract = Contract::find($id);
+    $contract = Contract::findOrFail($contract);
+    $plan = SubscriptionPlan::findOrFail($plan);
     if (!$contract) {
         abort(404, 'Contract not found');
     }
-    return view('signature', compact('contract'));
+    return view('signature', compact('contract' , 'plan'));
 }
 
 
-    public function sign(Request $request, $id)
+public function sign(Request $request, $contract , $plan)
 {
     $request->validate([
         'signature' => 'required|string',
     ]);
-    $plan = SubscriptionPlan::findOrFail($id);
-
-     $contract = new Contract();
-     $contract->user_id = Auth::user()->id;
-     $contract->subscription_plan_id = $id;
-     $contract->signature_path = null;
-     $contract->signed_at = null;
-     $contract->save();
-
+    $contract = Contract::findOrFail($contract);
+    $plan = SubscriptionPlan::findOrFail($plan);
     // Extraire les données de l'image base64
     $base64Image = $request->input('signature');
     $image = str_replace('data:image/png;base64,', '', $base64Image);
@@ -111,12 +117,12 @@ public function showSignatureForm($id)
     // Stocker l’image dans storage/app/public/signatures
     Storage::disk('public')->put("signatures/{$imageName}", base64_decode($image));
 
-    // Enregistrer le chemin dans la base (si vous avez un champ "signature_path")
+    // Enregistrer le chemin dans la base
     $contract->signature_path = "signatures/{$imageName}";
     $contract->signed_at = now();
     $contract->save();
 
-    return redirect()->route('show.signature', $contract->id);
+    return redirect()->route('stripe.form', $contract, $plan);
 }
 
 

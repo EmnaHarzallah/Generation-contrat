@@ -40,15 +40,17 @@ Route::get('/dashboard', function () {
 
 
 // Show the contract and signature form
-Route::get('showcontract/{id}', [ContractController::class, 'showContract'])->name('contract.show');
+Route::any('showcontract/{id}', [ContractController::class, 'showContract'])->name('contract.show');
 
-// Show the signature form (if needed)
+// Show the signature form (GET)
 Route::get('signcontract/{id}', [ContractController::class, 'showSignatureForm'])->name('show.signature');
 
+// Handle the signature submission (POST)
+Route::post('signcontract/{id}', [ContractController::class, 'sign'])->name('contract.sign');
+
 // Handle the signature submission
-Route::post('signcontract/{id}', [ContractController::class, 'sign'])->name('signedcontract');
-//Route::get('/stripe/{plan}', [StripeController::class, 'showForm'])->name('stripe.form');
-//Route::post('/stripe/{plan}', [StripeController::class, 'processPayment'])->name('stripe.process');
 
-
+Route::get('/stripe/{plan}', [StripeController::class, 'showForm'])->name('stripe.form');
+Route::post('/stripe/{plan}', [StripeController::class, 'processPayment'])->name('stripe.process');
 //Route::get('/contracts/{id}/sign-digital', [ContractController::class, 'sendToYousign'])->name('contracts.sendToYousign');
+
