@@ -14,6 +14,7 @@
         <div id="payment-message" class="mt-3 text-center"></div>
             <div id="download-contract" class="mt-3 text-center" style="display:none;">
             <a id="download-link" href="{{ route('download.contract', $contract->id) }}" class="btn btn-success" target="_blank">Télécharger le contrat</a>
+            <a id="retour_page" href="{{ route('dashboard') }}" target="_blank">Retour à la page d'accueil</a>
         </div>
     </div>
 </div>

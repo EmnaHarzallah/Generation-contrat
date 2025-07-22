@@ -76,7 +76,12 @@ class ContractController extends Controller
     $templateProcessor->setValue('end_date', $end_date->format('d/m/Y'));
     $templateProcessor->setValue('start_date', \Carbon\Carbon::now()->format('d/m/Y'));
     $templateProcessor->setValue('contract_date', \Carbon\Carbon::now()->format('d/m/Y'));
-    $templateProcessor->setValue('Signature', $signature);
+    $templateProcessor->setImageValue('Signature', [
+        'path' => storage_path('app/public/signatures/signature_' . $plan->id . '_' . $user->name . '.png'),
+        'width' => 200, // largeur en px
+        'height' => 80, // hauteur en px
+        'ratio' => false
+    ]);
 
 
     // Définir le nom du fichier généré
