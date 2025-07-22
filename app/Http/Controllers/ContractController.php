@@ -63,7 +63,7 @@ class ContractController extends Controller
     // Charger le template Word
     $templatePath = storage_path('app/contract_template.docx');
     $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
-    $signature = Storage::disk('public')->get('signatures/signature_' . $user->id . '_' . time() . '.png');
+    $signature = Storage::disk('public')->get('signatures/signature_' . $plan->id . '_' . $user->name . '.png');
 
     // Remplacer les variables du template
     $templateProcessor->setValue('name', $user->name);
@@ -140,11 +140,13 @@ public function sign(Request $request, $contract)
         'signature' => 'required|string',
     ]);
     $contract = Contract::findOrFail($contract);
+    $plan = SubscriptionPlan::findOrFail($contract->subscription_plan_id);
+    $user = Auth::user();
     // Extraire les données de l'image base64
     $base64Image = $request->input('signature');
     $image = str_replace('data:image/png;base64,', '', $base64Image);
     $image = str_replace(' ', '+', $image);
-    $imageName = 'signature_' . $contract->id . '_' . time() . '.png';
+    $imageName = 'signature_' . $plan->id . '_' . $user->name . '.png';
 
     // Stocker l’image dans storage/app/public/signatures
     Storage::disk('public')->put("signatures/{$imageName}", base64_decode($image));
