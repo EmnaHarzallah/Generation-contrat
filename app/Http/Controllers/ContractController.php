@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ContractMail;
 
 class ContractController extends Controller
 {
@@ -91,8 +93,8 @@ class ContractController extends Controller
     // Sauvegarder le contrat généré
     $templateProcessor->saveAs($savePath);
 
-    
-    return response()->download($savePath, $fileName);
+    Mail::to($user->email)->send(new ContractMail($user, $savePath));
+    return redirect()->route('dashboard')->with('success', 'Le contrat a été envoyé à votre adresse email.');
 }
 
 

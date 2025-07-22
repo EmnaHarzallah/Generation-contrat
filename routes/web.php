@@ -38,7 +38,13 @@ Route::get('/dashboard', function () {
     return view('home', compact('plans'));
 })->name('dashboard');
 
+Route::get('/profile', function () {
+    $user = Auth::user();
+    return view('profile', compact('user'));
+})->name('profile');
 
+
+Route::get('/profile/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
 
 // Show the contract and signature form
 Route::any('showcontract/{plan}', [ContractController::class, 'showContract'])->name('contract.show');

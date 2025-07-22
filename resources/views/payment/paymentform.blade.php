@@ -12,10 +12,7 @@
             <button id="submit-button" class="btn btn-primary w-100">Payer</button>
         </form>
         <div id="payment-message" class="mt-3 text-center"></div>
-            <div id="download-contract" class="mt-3 text-center" style="display:none;">
-            <a id="download-link" href="{{ route('download.contract', $contract->id) }}" class="btn btn-success" target="_blank">Télécharger le contrat</a>
-            <a id="retour_page" href="{{ route('dashboard') }}" target="_blank">Retour à la page d'accueil</a>
-        </div>
+            <a id="retour_page" href="{{ route('dashboard') }}" target="_blank" style="display:none;">Retour à la page d'accueil</a>
     </div>
 </div>
 
@@ -55,18 +52,20 @@
                 paymentMessage.textContent = 'Erreur de paiement : ' + result.error.message;
                 paymentMessage.classList.add('text-danger');
             } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-                paymentMessage.textContent = 'Paiement réussi ! Vous pouvez télécharger le contrat.';
+                paymentMessage.textContent = 'Paiement réussi ! Votre contrat sera envoyé à votre adresse email.';
                 paymentMessage.classList.remove('text-danger');
-                paymentMessage.classList.add('text-success');
-                
-                document.getElementById('download-contract').style.display = 'block';
+                paymentMessage.classList.add('text-success');   
+                document.getElementById('retour_page').style.display = 'block';
         
-                document.getElementById('download-link').href = '{{ route('download.contract', $plan->id) }}';
+                document.getElementById('retour_page').href = '{{ route('dashboard') }}';                             
             }
         } else {
             paymentMessage.textContent = 'Erreur lors de la création du paiement.';
             paymentMessage.classList.add('text-danger');
         }
+       
+        
+
     });
 </script>
 @endsection

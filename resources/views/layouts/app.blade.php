@@ -64,8 +64,22 @@
                                                              document.getElementById('logout-form').submit();">
                                         {{ __('Logout') }}
                                     </a>
+                                    <a class="dropdown-item" href="{{ route('profile') }}" onclick="event.preventDefault();
+                                                                    document.getElementById('profile-form').submit();">
+                                                {{ __('Profile') }}
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('dashboard') }}" onclick="event.preventDefault();
+                                                                    document.getElementById('dashboard-form').submit();">
+                                                {{ __('Dashboard') }}
+                                    </a>
 
                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        @csrf
+                                    </form>
+                                    <form id="profile-form" action="{{ route('profile') }}" method="GET" class="d-none">
+                                        @csrf
+                                    </form>
+                                    <form id="dashboard-form" action="{{ route('dashboard') }}" method="GET" class="d-none">
                                         @csrf
                                     </form>
                                 </div>
