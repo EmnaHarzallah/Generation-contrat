@@ -90,24 +90,20 @@ class ContractController extends Controller
 }
 
 
-public function showSignatureForm($contract , $plan)
+public function showSignatureForm($contract)
 {
     $contract = Contract::findOrFail($contract);
-    $plan = SubscriptionPlan::findOrFail($plan);
-    if (!$contract) {
-        abort(404, 'Contract not found');
-    }
+    $plan = SubscriptionPlan::findOrFail($contract->subscription_plan_id);
     return view('signature', compact('contract' , 'plan'));
 }
 
 
-public function sign(Request $request, $contract , $plan)
+public function sign(Request $request, $contract)
 {
     $request->validate([
         'signature' => 'required|string',
     ]);
     $contract = Contract::findOrFail($contract);
-    $plan = SubscriptionPlan::findOrFail($plan);
     // Extraire les données de l'image base64
     $base64Image = $request->input('signature');
     $image = str_replace('data:image/png;base64,', '', $base64Image);
@@ -122,85 +118,9 @@ public function sign(Request $request, $contract , $plan)
     $contract->signed_at = now();
     $contract->save();
 
-    return redirect()->route('stripe.form', $contract, $plan);
+    return redirect()->route('process-payment', $contract->subscription_plan_id);
 }
 
 
-/*public function createAndSendToYousign($planId)
-{
-    $user = Auth::user();
-    $plan = SubscriptionPlan::findOrFail($planId);
-
-    // 1. Générer le contrat Word
-    $templatePath = storage_path('contract_template.docx');
-    $docxPath = storage_path('app/public/contrat_' . $user->id . '.docx');
-
-    $templateProcessor = new TemplateProcessor($templatePath);
-    $templateProcessor->setValue('name', $user->name);
-    $templateProcessor->setValue('email', $user->email);
-    $templateProcessor->setValue('description', $plan->description);
-    $templateProcessor->setValue('start_date', now()->format('d/m/Y'));
-    $templateProcessor->setValue('end_date', now()->addDays($plan->duration)->format('d/m/Y'));
-    $templateProcessor->setValue('price', $plan->price);
-    $templateProcessor->setValue('duration', $plan->duration);
-    $templateProcessor->setValue('contract_date', now()->format('d/m/Y'));
-    $templateProcessor->saveAs($docxPath);
-
-    // 2. Convertir en PDF (nécessite LibreOffice installé)
-    $pdfPath = storage_path('app/public/contrat_' . $user->id . '.pdf');
-    exec("libreoffice --headless --convert-to pdf --outdir " . escapeshellarg(dirname($pdfPath)) . ' ' . escapeshellarg($docxPath));
-
-    if (!File::exists($pdfPath)) {
-        return back()->with('error', 'Échec de la conversion en PDF.');
-    }
-
-    // 3. Créer un contrat en base de données
-    $contract = new Contract();
-    $contract->user_id = $user->id;
-    $contract->subscription_plan_id = $plan->id;
-    $contract->signature_path = null;
-    $contract->signed_at = null;
-    $contract->save();
-
-    // 4. Envoyer à Yousign
-    $apiKey = env('YOUSIGN_API_KEY');
-
-    $response = Http::withToken($apiKey)->attach(
-        'file', file_get_contents($pdfPath), 'contrat.pdf'
-    )->post('https://api.yousign.app/v3/files');
-
-    if (!$response->successful()) {
-        return back()->with('error', 'Erreur lors de l’envoi du fichier à Yousign.');
-    }
-
-    $fileId = $response->json()['id'];
-
-    $signatureRequest = Http::withToken($apiKey)->post('https://api.yousign.app/v3/signature_requests', [
-        'name' => 'Signature contrat ' . $user->name,
-        'files' => [
-            ['id' => $fileId]
-        ],
-        'signers' => [
-            [
-                'info' => [
-                    'first_name' => $user->name,
-                    'email' => $user->email,
-                ],
-                'signature_level' => 'electronic_signature',
-                'authentication_mode' => 'email',
-            ]
-        ],
-        'signature_type' => 'embedded',
-    ]);
-
-    if (!$signatureRequest->successful()) {
-        return back()->with('error', 'Erreur lors de la création de la signature.');
-    }
-
-    $url = $signatureRequest->json()['signers'][0]['signature_links'][0]['url'];
-
-    return redirect()->to($url); // Redirige vers l’interface de signature Yousign
-}
-*/
 
 }

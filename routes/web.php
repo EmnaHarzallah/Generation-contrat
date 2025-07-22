@@ -6,7 +6,8 @@ use App\Http\Controllers\ContractController;
 use App\Models\SubscriptionPlan;
 use App\Models\Contract;
 use App\Http\Controllers\StripeController;
-
+use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Auth;
 
 Auth::routes();
@@ -40,17 +41,14 @@ Route::get('/dashboard', function () {
 
 
 // Show the contract and signature form
-Route::any('showcontract/{id}', [ContractController::class, 'showContract'])->name('contract.show');
+Route::any('showcontract/{plan}', [ContractController::class, 'showContract'])->name('contract.show');
 
 // Show the signature form (GET)
 Route::get('signcontract/{id}', [ContractController::class, 'showSignatureForm'])->name('show.signature');
 
 // Handle the signature submission (POST)
-Route::post('signcontract/{id}', [ContractController::class, 'sign'])->name('contract.sign');
+Route::post('signcontract/{contract}', [ContractController::class, 'sign'])->name('contract.sign');
 
-// Handle the signature submission
-
-Route::get('/stripe/{plan}', [StripeController::class, 'showForm'])->name('stripe.form');
-Route::post('/stripe/{plan}', [StripeController::class, 'processPayment'])->name('stripe.process');
-//Route::get('/contracts/{id}/sign-digital', [ContractController::class, 'sendToYousign'])->name('contracts.sendToYousign');
-
+Route::get('/process-payment/{plan}', [PaymentController::class, 'showPaymentForm'])->name('show-payment-form');
+Route::post('/process-payment/{plan}', [PaymentController::class, 'processPayment'])->name('process-payment');
+Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('stripe.webhook');

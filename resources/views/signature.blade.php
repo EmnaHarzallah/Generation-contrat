@@ -4,7 +4,7 @@
 <div class="container">
     <h2>Signature du contrat</h2>
 
-    <form action="{{ route('stripe.form', $contract->id , $plan->id) }}" method="POST">
+        <form id="signature-form" action="{{ route('contract.sign', $contract->id) }}" method="POST">
         @csrf
 
         <!-- Zone de signature -->
@@ -17,7 +17,16 @@
         <!-- Signature en base64 -->
         <input type="hidden" name="signature" id="signature">
 
-        <button type="submit" class="btn btn-primary mt-3">Signer le contrat</button>
+        <button type="submit" class="btn btn-primary mt-3">Confirmer</button>
+        @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
     </form>
 </div>
 @endsection
@@ -35,7 +44,7 @@
         });
 
         // Avant envoi du formulaire
-        document.querySelector('form').addEventListener('submit', function (e) {
+        document.getElementById('signature-form').addEventListener('submit', function (e) {
             console.log("submit");
             if (signaturePad.isEmpty()) {
                 alert('Veuillez signer avant de soumettre.');
