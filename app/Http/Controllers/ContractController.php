@@ -57,7 +57,7 @@ class ContractController extends Controller
         return redirect()->route('contract.index');
     }
 
-    public function generateandDownloadContract($planId)
+    public function generateandSendContract($planId)
 {
     $user = auth()->user();
     $plan = SubscriptionPlan::findOrFail($planId);
@@ -85,15 +85,11 @@ class ContractController extends Controller
         'ratio' => false
     ]);
 
+    $contractPath = storage_path('app/public/contracts/generated/contract_' . $user->id . '.docx');
+    $templateProcessor->saveAs($contractPath);
 
-    // Définir le nom du fichier généré
-    $fileName = 'contrat_' . $user->id . '_' . time() . '.docx';
-    $savePath = storage_path('app/public/contracts/' . $fileName);
+    \Mail::to($user->email)->send(new \App\Mail\ContractMail($user, $contractPath));
 
-    // Sauvegarder le contrat généré
-    $templateProcessor->saveAs($savePath);
-
-    Mail::to($user->email)->send(new ContractMail($user, $savePath));
     return redirect()->route('dashboard')->with('success', 'Le contrat a été envoyé à votre adresse email.');
 }
 

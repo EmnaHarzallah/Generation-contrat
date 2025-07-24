@@ -9,7 +9,8 @@
         <form id="payment-form" action="{{ route('process-payment', ['plan' => $plan->id, 'contract' => $contract->id]) }}" method="POST">
             @csrf
             <div id="card-element" class="mb-3"></div>
-            <button id="submit-button" class="btn btn-primary w-100">Payer</button>
+            <button type="submit" id="pay-btn" class="btn btn-primary w-100">Payer</button>
+            <span id="loading" style="display:none;"></span>
         </form>
         <div id="payment-message" class="mt-3 text-center"></div>
             <a id="retour_page" href="{{ route('dashboard') }}" target="_blank" style="display:none;">Retour à la page d'accueil</a>
@@ -28,8 +29,10 @@
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        // Crée le PaymentIntent côté backend
+        document.getElementById('loading').style.display = 'inline';
+        document.getElementById('pay-btn').disabled = true;
+        document.getElementById('pay-btn').textContent = 'En cours de traitement...';
+        
         const response = await fetch("{{ route('process-payment', ['plan' => $plan->id, 'contract' => $contract->id]) }}", {
             method: 'POST',
             headers: {
@@ -63,6 +66,7 @@
             paymentMessage.textContent = 'Erreur lors de la création du paiement.';
             paymentMessage.classList.add('text-danger');
         }
+        
        
         
 

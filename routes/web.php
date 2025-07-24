@@ -9,6 +9,7 @@ use App\Http\Controllers\StripeController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 Auth::routes();
 
@@ -59,4 +60,13 @@ Route::get('/process-payment/{plan}/{contract}', [PaymentController::class, 'sho
 Route::post('/process-payment/{plan}/{contract}', [PaymentController::class, 'processPayment'])->name('process-payment');
 Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('stripe.webhook');
 
-Route::get('/download-contract/{plan}', [ContractController::class, 'generateandDownloadContract'])->name('download.contract');
+Route::get('/download-contract/{plan}', [ContractController::class, 'generateandSendContract'])->name('download.contract');
+
+Route::get('/test-gmail', function () {
+    Mail::raw('Ceci est un test avec Gmail SMTP', function ($message) {
+        $message->to(Auth::user()->email)
+                ->subject('Test Gmail Laravel');
+    });
+
+    return 'Mail envoyé avec Gmail SMTP';
+});

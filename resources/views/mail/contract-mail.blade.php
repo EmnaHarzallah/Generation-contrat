@@ -1,11 +1,13 @@
-<x-mail::message>
-
+@component('mail::message')
 # Bonjour {{ $user->name }},
 
-Veuillez trouver en pièce jointe votre contrat.
+Merci pour votre paiement.  
+Vous trouverez ci-joint votre contrat pour le plan **{{ $user->subscriptionPlan->name ?? 'souscrit' }}**.
 
-Merci pour votre confiance !   
+@component('mail::button', ['url' => config('app.url')])
+Accéder à votre espace
+@endcomponent
 
 Merci,<br>
 {{ config('app.name') }}
-</x-mail::message>
+@endcomponent
