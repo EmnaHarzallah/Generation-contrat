@@ -9,6 +9,11 @@ use Stripe\PaymentIntent;
 use App\Models\Contract;
 use App\Mail\ContractMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
+use PhpOffice\PhpWord\TemplateProcessor;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\ContractController;
 
 class PaymentController extends Controller
 {
@@ -29,7 +34,7 @@ class PaymentController extends Controller
         $paymentIntent = \Stripe\PaymentIntent::create([
             'amount' => $plan->price * 100, 
             'currency' => 'eur',
-            'automatic_payment_methods' => ['enabled' => true], // ✅ important
+            'automatic_payment_methods' => ['enabled' => true],
             'metadata' => [
                 'plan_id' => $plan->id,
                 'user_id' => auth()->id(),
@@ -49,37 +54,9 @@ class PaymentController extends Controller
 {
     $user = auth()->user();
     $plan = SubscriptionPlan::findOrFail($request->plan_id);
-
-    // Génère le contrat (utilise une méthode du modèle Contract ou écris-la ici)
-    $fileName = 'contrat_' . \Str::slug($user->name) . '_' . time() . '.docx';
-    $contractPath = storage_path('app/public/contracts/' . $fileName);
-    $templatePath = storage_path('app/contract_template.docx');
-    $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
-    $signature = \Storage::disk('public')->get('signatures/signature_' . $plan->id . '_' . $user->name . '.png');
-    
-    $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor(storage_path('app/contract_template.docx'));
-    $templateProcessor->setValue('name', $user->name);
-    $templateProcessor->setValue('email', $user->email);
-    $templateProcessor->setValue('plan_name', $plan->name);
-    $templateProcessor->setValue('description', $plan->description);
-    $templateProcessor->setValue('price', $plan->price);
-    $templateProcessor->setValue('duration', $plan->duration);
-    $end_date = \Carbon\Carbon::now()->addDays($plan->duration);
-    $templateProcessor->setValue('end_date', $end_date->format('d/m/Y'));
-    $templateProcessor->setValue('start_date', \Carbon\Carbon::now()->format('d/m/Y'));
-    $templateProcessor->setValue('contract_date', \Carbon\Carbon::now()->format('d/m/Y'));
-    $templateProcessor->setImageValue('Signature', [
-        'path' => storage_path('app/public/signatures/signature_' . $plan->id . '_' . $user->name . '.png'),
-        'width' => 200, // largeur en px
-        'height' => 80, // hauteur en px
-        'ratio' => false
-    ]);
-
-    $templateProcessor->saveAs($contractPath);
-
-    // Envoi de l'email via ta méthode existante
+    $contractModel = new ContractController();
+    $contractPath = $contractModel->generateContract($plan->id);
     $this->sendContractEmail($user, $contractPath);
-
     return response()->json(['status' => 'email_sent']);
 }
 

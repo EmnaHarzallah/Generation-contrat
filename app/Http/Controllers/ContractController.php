@@ -85,7 +85,7 @@ class ContractController extends Controller
         'ratio' => false
     ]);
 
-    $contractPath = storage_path('app/public/contracts/generated/contract_' . $user->id . '.docx');
+    $contractPath = storage_path('app/public/contracts/contract_' . $user->id . '.docx');
     $templateProcessor->saveAs($contractPath);
     return $contractPath;
 }
