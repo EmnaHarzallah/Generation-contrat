@@ -12,44 +12,28 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Support\Str;
 use Illuminate\Mail\Mailables\Address;
-
 class ContractMail extends Mailable
 {
     use Queueable, SerializesModels;
+
     public $user;
-    public $contractPath;   
+    public $contractPath;
+
     public function __construct($user, $contractPath)
     {
         $this->user = $user;
         $this->contractPath = $contractPath;
     }
+
     public function build()
     {
-        return $this->markdown('mail.contrat_mail')
-        ->subject('Votre contrat de souscription')
-        ->attach($this->contractPath, [
-            'as' => 'contrat.docx',
-            'mime' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ]);
+        return $this->from('contratgeneration@gmail.com', 'Contrat Generation')
+            ->subject('Votre contrat de souscription')
+            ->markdown('mail.contract_mail')
+            ->with(['user' => $this->user])
+            ->attach($this->contractPath, [
+                'as' => 'contrat.docx',
+                'mime' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ]);
     }
-
-    public function envelope(): Envelope
-{
-    return new Envelope(
-        from: new Address('contratgeneration@gmail.com', 'Contrat Generation'),
-        subject: 'Contrat de souscription',
-    );
-}
-    
-
-public function attachments(): array
-{
-    $fileName = 'contrat_' . Str::slug($user->name) . '_' . time() . '.docx';
-    $savePath = storage_path('app/public/contracts/' . $fileName);
-    return [
-        Attachment::fromPath($savePath)
-            ->as($fileName)
-            ->withMime('application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
-    ];
-}
 }

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<head><script src="https://js.stripe.com/v3/"></script></head>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
     <div class="card shadow p-4" style="max-width: 400px;">
@@ -17,6 +18,7 @@
     </div>
 </div>
 
+@section('scripts')
 <script src="https://js.stripe.com/v3/"></script>
 <script>
     const stripe = Stripe('{{ config('services.stripe.key') }}');
@@ -29,25 +31,32 @@
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         document.getElementById('loading').style.display = 'inline';
         document.getElementById('pay-btn').disabled = true;
         document.getElementById('pay-btn').textContent = 'En cours de traitement...';
-        
-        const response = await fetch("{{ route('process-payment', ['plan' => $plan->id, 'contract' => $contract->id]) }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({})
-        });
 
-        const data = await response.json();
+        try {
+            // 1. Appelle Laravel pour créer le PaymentIntent
+            const response = await fetch("{{ route('process-payment', ['plan' => $plan->id, 'contract' => $contract->id]) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({})
+            });
 
-        if (data.clientSecret) {
+            const data = await response.json();
+
+            if (!data.clientSecret) {
+                throw new Error('Client secret manquant');
+            }
+
+            // 2. Confirmer le paiement avec Stripe
             const result = await stripe.confirmCardPayment(data.clientSecret, {
                 payment_method: {
-                    card: cardElement,
+                    card: cardElement
                 }
             });
 
@@ -55,21 +64,35 @@
                 paymentMessage.textContent = 'Erreur de paiement : ' + result.error.message;
                 paymentMessage.classList.add('text-danger');
             } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-                paymentMessage.textContent = 'Paiement réussi ! Votre contrat sera envoyé à votre adresse email.';
-                paymentMessage.classList.remove('text-danger');
-                paymentMessage.classList.add('text-success');   
-                document.getElementById('retour_page').style.display = 'block';
-        
-                document.getElementById('retour_page').href = '{{ route('dashboard') }}';                             
+                // 3. Envoie une requête à Laravel pour générer & envoyer le contrat
+                const finalizeResponse = await fetch("{{ route('payment.finalize') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ plan_id: {{ $plan->id }} })
+                });
+
+                const finalizeData = await finalizeResponse.json();
+
+                if (finalizeData.status === 'email_sent') {
+                    window.location.href = "{{ route('payment.success') }}";
+                } else {
+                    paymentMessage.textContent = "Paiement ok, mais une erreur est survenue lors de l'envoi du contrat.";
+                    paymentMessage.classList.add('text-danger');
+                }
             }
-        } else {
-            paymentMessage.textContent = 'Erreur lors de la création du paiement.';
+        } catch (error) {
+            paymentMessage.textContent = "Erreur : " + error.message;
             paymentMessage.classList.add('text-danger');
         }
-        
-       
-        
 
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('pay-btn').disabled = false;
+        document.getElementById('pay-btn').textContent = 'Payer';
     });
 </script>
+@endsection
+
 @endsection

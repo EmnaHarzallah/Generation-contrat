@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
-use App\Mail\ContractMail;
+use Illuminate\Support\Str;
+use App\Models\User;
+use App\Models\SubscriptionPlan;
 
 class WebhookController extends Controller
 {
@@ -22,22 +23,31 @@ class WebhookController extends Controller
         $plan = \App\Models\SubscriptionPlan::find($planId);
 
         if (!$user || !$plan) {
-            \Log::error("User ou Plan introuvable. user_id: $userId, plan_id: $planId");
+            \Log::error("User ou Plan introuvable.");
             return response()->json(['error' => 'User ou Plan introuvable'], 404);
         }
 
-        try {
-            $contractModel = new \App\Models\Contract();
-            $contractModel->generateandSendContract($user, $plan);
-        } catch (\Exception $e) {
-            \Log::error("Erreur d'envoi de mail : " . $e->getMessage());
-            return response()->json(['error' => 'Erreur lors de l\'envoi du contrat.'], 500);
-        }
+        // Génération du contrat Word
+        $fileName = 'contrat_' . \Str::slug($user->name) . '_' . time() . '.docx';
+        $contractPath = storage_path('app/public/contracts/' . $fileName);
 
-        return response()->json(['status' => 'contract_sent']);
+        $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor(storage_path('app/contract_template.docx'));
+        $templateProcessor->setValue('name', $user->name);
+        $templateProcessor->setValue('email', $user->email);
+        $templateProcessor->setValue('plan_name', $plan->name);
+        $templateProcessor->setValue('description', $plan->description);
+        $templateProcessor->setValue('price', $plan->price);
+        $templateProcessor->setValue('duration', $plan->duration);
+        $templateProcessor->setValue('start_date', now()->format('d/m/Y'));
+        $templateProcessor->setValue('end_date', now()->addDays($plan->duration)->format('d/m/Y'));
+        $templateProcessor->setValue('contract_date', now()->format('d/m/Y'));
+
+        $templateProcessor->saveAs($contractPath);
+
+        // Envoi par email
+        Mail::to($user->email)->send(new \App\Mail\ContractMail($user, $contractPath));
     }
 
-    return response()->json(['status' => 'ignored']);
-}
-
+    return response()->json(['status' => 'success']);
+    }
 }

@@ -60,7 +60,7 @@ Route::get('/process-payment/{plan}/{contract}', [PaymentController::class, 'sho
 Route::post('/process-payment/{plan}/{contract}', [PaymentController::class, 'processPayment'])->name('process-payment');
 Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('stripe.webhook');
 
-Route::get('/download-contract/{plan}', [ContractController::class, 'generateandSendContract'])->name('download.contract');
+Route::get('/download-contract/{plan}', [ContractController::class, 'generateContract'])->name('download.contract');
 
 Route::get('/test-gmail', function () {
     Mail::raw('Ceci est un test avec Gmail SMTP', function ($message) {
@@ -70,3 +70,9 @@ Route::get('/test-gmail', function () {
 
     return 'Mail envoyé avec Gmail SMTP';
 });
+
+Route::get('/payment/success', function () {
+    return view('payment.success');
+})->name('payment.success')->middleware('auth');
+
+Route::post('/payment/finalize', [PaymentController::class, 'finalizePayment'])->name('payment.finalize')->middleware('auth');

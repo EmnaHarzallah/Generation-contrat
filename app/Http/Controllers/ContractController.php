@@ -57,7 +57,7 @@ class ContractController extends Controller
         return redirect()->route('contract.index');
     }
 
-    public function generateandSendContract($planId)
+    public function generateContract($planId)
 {
     $user = auth()->user();
     $plan = SubscriptionPlan::findOrFail($planId);
@@ -65,7 +65,7 @@ class ContractController extends Controller
     // Charger le template Word
     $templatePath = storage_path('app/contract_template.docx');
     $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
-    $signature = Storage::disk('public')->get('signatures/signature_' . $plan->id . '_' . $user->name . '.png');
+    $signature = \Storage::disk('public')->get('signatures/signature_' . $plan->id . '_' . $user->name . '.png');
 
     // Remplacer les variables du template
     $templateProcessor->setValue('name', $user->name);
@@ -87,10 +87,7 @@ class ContractController extends Controller
 
     $contractPath = storage_path('app/public/contracts/generated/contract_' . $user->id . '.docx');
     $templateProcessor->saveAs($contractPath);
-
-    \Mail::to($user->email)->send(new \App\Mail\ContractMail($user, $contractPath));
-
-    return redirect()->route('dashboard')->with('success', 'Le contrat a été envoyé à votre adresse email.');
+    return $contractPath;
 }
 
 
